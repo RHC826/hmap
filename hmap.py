@@ -20,53 +20,40 @@ class ProtoHashMap:
     """
 
     def __init__(self):
-        self.tables: list = []
-        self.values: list = []
+        self.values: list = [False] * 100
 
     def __str__(self):
-        return str(
-            [f"{self.tables[i]}:{self.values[i]}" for i in range(len(self.tables))]
-        )
-
-    def _search(self, key: str) -> Optional[int]:
-        """
-        key を添え字に変換する
-        """
-        index: Optional[int] = None
-        for table in iter(self.tables):
-            if key is table[0]:
-                index = int(table[1])
-
-        assert (
-            len([int(table[1]) for table in iter(self.tables) if key is table[0]]) == 1
-        ), "同じ key が複数あります。"
-
-        return index
+        return str([f"{self.values[i]}" for i in range(len(self.values))])
 
     def store(self, key="", value="") -> None:
         """
         key を添え字にして value を格納する。
-        values: value
-        tables: (key, 添え字の番号)
         """
-        self.values.append(value)
-        index = len(self.values) - 1
-        self.tables.append((key, index))
+        index: int = _search(key)
+        if self.values[index] is not None:
+            self.values[index] = value
 
-        assert (
-            len([int(table[1]) for table in iter(self.tables) if key is table[0]]) == 1
-        ), "同じ key が複数あります。"
+        # self.store(key+"_", value)
 
     def load(self, key: str) -> Union[str, bool]:
         """
         key を入力すると value が返る
         """
-        index = self._search(key)
+        index = _search(key)
 
         if index is not None:
             return self.values[index]
 
         return False
+
+def _search(key: str) -> Optional[int]:
+    """
+    key を添え字に変換する
+    """
+    index: Optional[int] = None
+    index = hash(key) % 100
+
+    return int(index)
 
 
 def yama_kawa_test() -> bool:
@@ -77,13 +64,13 @@ def yama_kawa_test() -> bool:
     hmp.store("yama", "kawa")
     hmp.store("きのこ", "たけのこ")
     hmp.store("foo", "bar")
+    print(hmp)
 
     assert hmp.load("yama") == "kawa", "「川！」が帰っていません"
 
     print("「山！」に対して「川！」と返すテスト: yama")
     print(hmp.load("yama"))
     print(hmp.load("きのこ"))
-    print(hmp)
 
     return True
 
